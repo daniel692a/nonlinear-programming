@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from tools import hessian, gradient, norm, backtracking, is_positive_definite, fxy
+from tools import hessian, gradient, beale_function_gradient_vectorized, norm, backtracking_line_search, is_positive_definite, beale_function_vectorized, fxy
 
 def newton_des(tol:float, max_iter:int, x0:float, y0:float)->np.ndarray:
     k:int = 0
@@ -10,25 +10,22 @@ def newton_des(tol:float, max_iter:int, x0:float, y0:float)->np.ndarray:
     x_s = [x0]
     y_s = [y0]
 
-    a = float(input("Ingrese el alpha incial: "))
-    p = float(input('Ingrese el valor p: '))
-    u = float(input('Ingrese el valor de u: '))
-
     while k <= max_iter:
 
+        grad = beale_function_gradient_vectorized(solution)
         hess_f = hessian(solution[0], solution[1])
 
-        p_k = ( -np.linalg.inv(hess_f) ) @ gradient(solution[0], solution[1])
+        pk = -np.linalg.inv(hess_f) @ grad
 
-        if(norm(gradient(solution[0], solution[1])) < tol):
+        if(norm(grad) < tol):
             break
 
         if(is_positive_definite(hess_f)):
             alpha = 1
         else:
-            alpha = backtracking(a, p, u, solution[0], solution[1], p_k)
+            alpha = backtracking_line_search(beale_function_vectorized, beale_function_gradient_vectorized, solution, pk)
 
-        solution = solution + (alpha * p_k)
+        solution = solution + (alpha * pk)
 
         x_s.append(solution[0])
         y_s.append(solution[1])

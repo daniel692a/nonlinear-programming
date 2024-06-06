@@ -1,28 +1,24 @@
 from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
-from tools import gradient_descent, norm, backtracking, fxy
+from tools import gradient, norm, fxy, backtracking_line_search, beale_function_vectorized, beale_function_gradient_vectorized
 
-def max_descent(tol:float, max_iter:int, x0:float, y0:float)->List[int]:
+def max_descent(tol:float, max_iter:int, x0:float, y0:float)->List[float]:
     k:int = 0
     solution = np.array([x0, y0])
 
     x_s = [x0]
     y_s = [y0]
 
-    a = float(input("Ingrese el alpha incial: "))
-    p = float(input('Ingrese el valor p: '))
-    u = float(input('Ingrese el valor de u: '))
-
     while k <= max_iter:
-        pk = gradient_descent(solution[0], solution[1])
+        pk = -gradient(solution[0], solution[1])
 
         print(f'dirección de descenso: {pk}')
 
-        if(norm(pk)<tol):
-            return solution
+        if norm(beale_function_gradient_vectorized(solution)) < tol:
+            break
 
-        alpha = backtracking(a, p, u, solution[0], solution[1], pk)
+        alpha = backtracking_line_search(beale_function_vectorized, beale_function_gradient_vectorized, solution, pk)
         solution = solution + (alpha * pk)
 
         x_s.append(solution[0])
