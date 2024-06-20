@@ -1,7 +1,9 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
-from tools import gradient, fxy
+from tools import extend_list, fxy
 from tools import norm, beale_function_vectorized, beale_function_gradient_vectorized, backtracking_line_search
+from animation import animar_puntos
 
 def bfgs(tol: float, max_iter:int, x0:float, y0: float, B):
     k:int = 0
@@ -12,7 +14,17 @@ def bfgs(tol: float, max_iter:int, x0:float, y0: float, B):
     x_s = [x0]
     y_s = [y0]
 
+    ks = []
+    gradients = []
+    norms = []
+    pks = []
+    alphas = []
+    sks = []
+    yks = []
+    Bs = []
+
     while k <= max_iter:
+        gradients.append(beale_function_gradient_vectorized(solution))
         p_k = -B @ beale_function_gradient_vectorized(solution)
 
         if norm(p_k) < tol:
@@ -25,16 +37,47 @@ def bfgs(tol: float, max_iter:int, x0:float, y0: float, B):
 
         x_s.append(solution[0])
         y_s.append(solution[1])
-        print(f'nueva solución: {solution}\n')
+
         solutions.append(solution)
         s_k = solutions[-1] - solutions[-2]
         y_k = beale_function_gradient_vectorized(solutions[-1]) - beale_function_gradient_vectorized(solutions[-2])
         B = cuasi_update_BFGS(B, s_k, y_k)
 
+        ks.append(k)
+        pks.append(p_k)
+        norms.append(norm(beale_function_gradient_vectorized(solution)))
+        alphas.append(alpha)
+        sks.append(s_k)
+        yks.append(yks)
+        Bs.append(B)
+
         k += 1
 
     plotting(x_s, y_s)
-    return solution
+    pts = solutions
+    max_length = max(len(ks), len(solutions), len(gradients), len(pks), len(norms), len(alphas), len(sks), len(yks), len(Bs))
+
+    ks = extend_list(ks, max_length, 0)
+    gradients = extend_list(gradients, max_length, 0)
+    solutions = extend_list(solutions, max_length, 0)
+    pks = extend_list(pks, max_length, 0)
+    norms = extend_list(norms, max_length, 0)
+    alphas = extend_list(alphas, max_length, 0)
+    sks = extend_list(sks, max_length, 0)
+    yks = extend_list(yks, max_length, 0)
+    Bs = extend_list(Bs, max_length, 0)
+
+    data = {
+        'k' : ks,
+        'x_k': solutions,
+        '||∇f(x)||': norms,
+        'p_k': pks,
+        'alpha': alphas,
+        'B_k+1': Bs
+    }
+    animar_puntos(pts)
+    df = pd.DataFrame(data)
+    return df
 
 def cuasi_update_BFGS(B_k, s_k, y_k):
     Bs = B_k @ y_k

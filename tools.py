@@ -46,3 +46,7 @@ def backtracking_line_search(f, grad_f, x, p, alpha=1, rho=0.5, c=1e-4):
 def is_positive_definite(matrix: np.ndarray) -> bool:
     eigenvalues = np.linalg.eigvals(matrix)
     return np.all(eigenvalues > 0)
+
+
+def extend_list(lst, length, fill_value):
+    return lst + [fill_value] * (length - len(lst))
